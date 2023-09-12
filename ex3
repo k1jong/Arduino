@@ -1,0 +1,26 @@
+const int LED[] = { 13, 12, 11, 10 };
+bool a = 0;
+bool b = 1;
+void setup() {
+  for (int i = 0; i < sizeof(LED) / sizeof(LED[0]); i++) {
+    pinMode(LED[i], OUTPUT);
+  }
+  digitalWrite(LED, HIGH);
+}
+
+void loop() {
+  // put your main code here, to run repeatedly:
+  for (int i = 1; i <= 1000; i++) {
+    for (int j = 0; j < sizeof(LED) / sizeof(LED[0]); j++) {
+      digitalWrite(LED[j], a);
+    }
+    delayMicroseconds(i);
+    for (int k = 0; k < sizeof(LED) / sizeof(LED[0]); k++) {
+      digitalWrite(LED[k], b);
+    }
+    delayMicroseconds(1000 - i);
+  }
+  bool c = a;
+  a = b;
+  b = c;
+}
