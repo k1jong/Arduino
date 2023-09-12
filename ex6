@@ -1,0 +1,22 @@
+const int Pin = 2;
+const int LED = 11;
+int b = 0;
+
+void setup() {
+  // put your setup code here, to run once:
+  Serial.begin(115200);
+  pinMode(Pin, INPUT);
+}
+
+void loop() {
+  // put your main code here, to run repeatedly:
+  analogWrite(LED, b);
+  int a = digitalRead(Pin);
+  if (a == 1) {
+    b += 25;
+    if (b > 255) {
+      b = 0;
+    }
+    delay(100);
+  }
+}
