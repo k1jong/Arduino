@@ -1,0 +1,40 @@
+const int analogPin = A0;
+// const int LED[] = { 3, 5, 6, 9 };
+const int LED = 3;
+#define Volt 5.0 / 1024.0
+
+char buf[100] = { 0 };
+void setup() {
+  // put your setup code here, to run once:
+  Serial.begin(115200);
+  // for (int i = 0; i < sizeof(LED) / sizeof(LED[0]); i++) {
+  //   pinMode(LED[i], OUTPUT);
+  // }
+  pinMode(LED, OUTPUT);
+}
+
+void loop() {
+  int analogvalue = analogRead(analogPin);
+  // Serial.print(analogvalue);
+  // Serial.print(",");
+  // Serial.print(Volt * analogvalue);
+  // Serial.println("V");
+  // sprintf(buf, "%d %d mV", analogvalue, (int)(Volt * analogvalue * 1000));
+  // Serial.println(buf);
+
+  // if(analogvalue>200) analogWrite(LED, 0);
+  // if(analogvalue>400) analogWrite(LED, 50);
+  // if(analogvalue>600) analogWrite(LED, 100);
+  // if(analogvalue>800) analogWrite(LED, 255);
+  unsigned long val = map(analogvalue, 200, 900, 0, 255);
+  analogWrite(LED, val);
+  Serial.println(analogvalue);
+
+  // for (int i = 0; i < sizeof(LED) / sizeof(LED[0]); i++) {
+  //   if (analogvalue > 1024 / 7 * (1 + i)) {
+  //     digitalWrite(LED[i], HIGH);
+  //   } else {
+  //     digitalWrite(LED[i], LOW);
+  //   }
+  // }
+}
