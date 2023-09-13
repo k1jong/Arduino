@@ -1,0 +1,36 @@
+const int Pin = 2;
+const int Pin2 = 3;
+const int LED = 11;
+const int LED2 = 10;
+int b = 0;
+int b2 = 0;
+int c1 = 0, c2 = 0,c3 = 0 , c4 = 0;
+
+void setup() {
+  // put your setup code here, to run once:
+  Serial.begin(115200);
+  pinMode(Pin, INPUT);
+  pinMode(Pin2, INPUT);
+}
+
+void loop() {
+  // put your main code here, to run repeatedly:
+  analogWrite(LED, b);
+  c2 = digitalRead(Pin);
+  if ((c1 == 0) && (c2 == 1)) {
+    b += 25;
+    if (b > 255) {
+      b = 0;
+    }
+  }
+  c1 = c2;
+  analogWrite(LED2, b2);
+  int c4 = digitalRead(Pin2);
+  if (c4 == 1 && c3 == 0) {
+    b2 += 25;
+    if (b2 > 255) {
+      b2 = 0;
+    }
+  }
+  c3 = c4;
+}
