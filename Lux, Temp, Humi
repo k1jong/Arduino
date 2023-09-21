@@ -1,0 +1,117 @@
+// Phi_Publish_DHT11.ino
+#include <ESP8266WiFi.h>
+#include <PubSubClient.h>
+#include <Wire.h>
+#include <BH1750.h>  
+#include <DHT.h>
+
+// ----- DHT11 ------------------------
+#define DHTPIN D4
+#define DHTTYPE DHT11
+DHT dht(DHTPIN, DHTTYPE);
+// -------------------------------------
+
+BH1750 lightMeter;
+
+const char* ssid = "RiatechB2G";
+const char* password = "12345678";
+
+const char* clientId = "mqtt_phirippa";
+const char* userId = clientId;
+const char* userPw = "1234";
+char* topic = "Sensors/MyOffice/Indoor/SensorValue";
+char* server = "192.168.2.34";
+int PAYLOADSIZE = 100;
+
+WiFiClient wifiClient;
+PubSubClient client(server, 1883, wifiClient);
+
+void setup() {
+  Serial.begin(9600);
+
+  Serial.print("\nConnecting to ");
+  Serial.println(ssid);
+
+  WiFi.begin(ssid, password);
+  while (WiFi.status() != WL_CONNECTED) {
+    Serial.print(".");
+    delay(500);
+  }
+  Serial.println("\nWiFi Connected");
+
+  Serial.println("Connecting to broker");
+  while (!client.connect(clientId, userId, userPw)) {
+    Serial.print("*");
+    delay(1000);
+  }
+  Serial.println("\nConnected to broker");
+  dht.begin();
+  Wire.begin();
+  lightMeter.begin();
+}
+
+void loop() {
+  char payload[PAYLOADSIZE];
+  float h = dht.readHumidity();
+  float t = dht.readTemperature();
+  float l = lightMeter.readLightLevel();
+  if (isnan(h) || isnan(t)) {
+    Serial.println("Failed to read from DHT sensor!");
+    return;
+  }
+
+  String sPayload = "{'Temp':"
+                    + String(t, 1)
+                    + ",'Humi':"
+                    + String(h, 1)
+                    + ",'Lux' :"
+                    + String(l, 1)
+                    + "}";
+
+  sPayload.toCharArray(payload, PAYLOADSIZE);
+  client.publish(topic, payload);
+  Serial.print(String(topic) + " ");
+  Serial.println(payload);
+  delay(2000);
+}
+
+//////////////////////////////////////
+
+
+from influxdb import InfluxDBClient
+import paho.mqtt.client as mqtt
+dbClient = InfluxDBClient(host='localhost', port=8086, username='influx_phirippa', password='1234',
+                database='db_riatech')
+def on_connect( client, userdata, flags, rc ):
+   print("Connect with result code " + str(rc) )
+   client.subscribe("Sensors/MyOffice/#")
+def on_message( client, userdata, msg ):
+   print( msg.topic +" "+str(msg.payload) )
+   topic = msg.topic.split('/')
+   loc = topic[1]
+   subloc = topic[2]
+   payload = eval(msg.payload)
+
+   json_body = [ ]
+   data_point = {
+        'measurement': 'Sensors',
+        'tags': {'Location': ' ', 'SubLocation':' '},
+        'fields': {'Temp': 0.0, 'Humi':0.0,'Lux':0.0}
+        }
+
+   data_point['tags']['Location'] = loc
+   data_point['tags']['SubLocation'] = subloc
+   data_point['fields']['Temp'] = payload['Temp']
+   data_point['fields']['Humi'] = payload['Humi']
+   data_point['fields']['Lux'] = payload['Lux']
+   json_body.append(data_point)
+   dbClient.write_points( json_body )
+
+client = mqtt.Client( )
+client.username_pw_set(username="mqtt_riatech", password="1234")
+client.on_connect = on_connect
+client.on_message = on_message
+client.connect("localhost", 1883, 60)
+client.loop_forever( )
+
+
